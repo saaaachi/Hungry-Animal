@@ -5,62 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hungry Animal - 第20弾</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #e8f5e9; font-family: sans-serif; touch-action: none; }
+        * { box-sizing: border-box; }
+        body { margin: 0; overflow: hidden; background: #e8f5e9; font-family: sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
         
-        /* 広告エリア：高さを150pxに設定（中サイズバナー対応） */
-        #ad-top, #ad-bottom { 
-            position: fixed; left: 0; width: 100%; height: 150px; 
-            background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; 
+        /* 上下広告エリア（150px） */
+        #ad-top {
+            position: absolute; top: 0; left: 0; width: 100%; height: 150px;
+            background: #333; z-index: 1000;
         }
-        #ad-top { top: 0; }
-        #ad-bottom { bottom: 0; }
-        
-        iframe { border: none; width: 100%; height: 150px; }
+        #ad-bottom {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 60px;
+            background: #333; z-index: 1; /* PR広告の裏に潜る */
+        }
+        iframe { border: none; width: 100%; height: 100%; }
 
-        /* キャンバス：上下の広告を避けて中央に配置 */
-        canvas { display: block; margin-top: 150px; background: #c8e6c9; }
-        
-        #ui { position: absolute; top: 160px; left: 0; width: 100%; text-align: center; color: #2e7d32; font-size: 26px; font-weight: bold; pointer-events: none; text-shadow: 1px 1px 2px white; z-index: 10; }
-        
-        #startScreen { 
-            position: absolute; top: 150px; left: 0; width: 100%; height: calc(100vh - 300px); 
-            background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50;
+        /* ゲームエリア */
+        #game-outer {
+            position: absolute; top: 150px; bottom: 60px; left: 0; right: 0;
+            background: #c8e6c9; overflow: hidden; z-index: 10;
         }
-        #goButton { padding: 15px 45px; font-size: 24px; background: #4caf50; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px #2e7d32; }
-        #best-info { margin-top: 15px; font-weight: bold; color: #2e7d32; }
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        #ui { position: absolute; top: 10px; left: 0; width: 100%; text-align: center; color: #2e7d32; font-size: 26px; font-weight: bold; pointer-events: none; text-shadow: 1px 1px 2px white; z-index: 20; }
+        
+        /* メニュー画面（上から詰める配置） */
+        #startScreen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 50;
+            padding-top: 10px;
+        }
+
+        #menuHeader { text-align: center; margin-bottom: 5px; }
+        #menuTitle { color: #2e7d32; margin: 0; font-size: 24px; }
+        #best-info { font-weight: bold; color: #2e7d32; font-size: 16px; margin: 0; }
+
+        /* 中央広告（スリム枠160px） */
+        #ad-middle-container {
+            width: 300px; height: 160px; background: #000;
+            margin: 5px 0; display: none;
+            justify-content: center; align-items: center;
+            overflow: hidden; flex-shrink: 0;
+        }
+
+        /* ボタン群 */
+        .btn-group {
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%; gap: 6px;
+        }
+        #goButton { 
+            padding: 12px 0; font-size: 20px; background: #4caf50; border: none; 
+            border-radius: 50px; color: white; font-weight: bold; cursor: pointer; 
+            width: 240px; box-shadow: 0 4px #2e7d32; 
+        }
+        .link-btn {
+            padding: 10px 0; font-size: 14px; background: #9b59b6;
+            border: none; border-radius: 50px; color: white; font-weight: bold;
+            text-decoration: none; width: 240px; text-align: center;
+            box-shadow: 0 4px #8e44ad;
+        }
     </style>
 </head>
 <body>
 
     <div id="ad-top"><iframe id="frame-top" src="ad.html"></iframe></div>
-    <div id="ad-bottom"><iframe id="frame-bottom" src="ad.html"></iframe></div>
 
-    <div id="startScreen">
-        <h1 style="color:#2e7d32; margin-bottom:10px;">Hungry Animal</h1>
-        <p style="margin-bottom: 25px; text-align: center;">落ちてくる「ごはん」をキャッチ！<br>「石」を食べるとお腹を壊しちゃうよ！</p>
-        <button id="goButton">あそぶ！</button>
-        <p id="best-info">BEST SCORE: <span id="best-ui">0</span></p>
+    <div id="game-outer">
+        <div id="ui">SCORE: 0</div>
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="startScreen">
+            <div id="menuHeader">
+                <h1 id="menuTitle">Hungry Animal</h1>
+                <p id="gameDesc" style="margin: 5px 0; font-size: 14px;">落ちてくる「ごはん」をキャッチ！</p>
+                <p id="best-info">BEST SCORE: <span id="best-ui">0</span></p>
+            </div>
+
+            <div id="ad-middle-container">
+                <script src="https://adm.shinobi.jp/s/1e6de436ea850948e238e975a93767eb"></script>
+            </div>
+
+            <div class="btn-group">
+                <button id="goButton">あそぶ！</button>
+                <a href="https://saaaachi.github.io/Blackhole-drop/" class="link-btn">他のゲームはこちら</a>
+            </div>
+        </div>
     </div>
 
-    <div id="ui">SCORE: 0</div>
-    <canvas id="gameCanvas"></canvas>
+    <div id="ad-bottom"><iframe id="frame-bottom" src="ad.html"></iframe></div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const ui = document.getElementById("ui");
         const startScreen = document.getElementById("startScreen");
+        const menuTitle = document.getElementById("menuTitle");
+        const gameDesc = document.getElementById("gameDesc");
+        const adMid = document.getElementById("ad-middle-container");
         const goButton = document.getElementById("goButton");
         const bestUi = document.getElementById("best-ui");
+        const gameOuter = document.getElementById("game-outer");
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight - 300;
+        function resize() {
+            canvas.width = gameOuter.clientWidth;
+            canvas.height = gameOuter.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
         let score = 0;
         let bestScore = localStorage.getItem("hungry_animal_best") || 0;
         let gameActive = false;
-        let player = { x: canvas.width / 2, y: canvas.height - 70, radius: 45, pull: 85 };
+        let player = { x: 0, y: 0, radius: 45, pull: 85 };
         let items = [];
+        let spawnTimer;
         const foodEmojis = ["🍎", "🍌", "🍖", "🥦", "🍙"];
         const animals = ["🐶", "🐱", "🐻", "🐼", "🐨"];
         let currentAnimal = "🐶";
@@ -74,14 +131,17 @@
             items = [];
             currentAnimal = animals[Math.floor(Math.random() * animals.length)];
             ui.innerText = "SCORE: 0";
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 70;
             spawnItem();
             update();
         };
 
         function handleMove(e) {
             if(!gameActive) return;
+            const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            player.x = clientX;
+            player.x = clientX - rect.left;
             if(player.x < player.radius) player.x = player.radius;
             if(player.x > canvas.width - player.radius) player.x = canvas.width - player.radius;
         }
@@ -97,38 +157,32 @@
                 y: -50,
                 emoji: isStone ? "🪨" : foodEmojis[Math.floor(Math.random() * foodEmojis.length)],
                 type: isStone ? "stone" : "food",
-                speed: 3 + Math.random() * 2 + (score / 10)
+                speed: 3 + Math.random() * 2 + (score / 15)
             });
-            let interval = Math.max(200, 800 - (score * 5));
-            setTimeout(spawnItem, interval);
+            spawnTimer = setTimeout(spawnItem, Math.max(200, 800 - (score * 5)));
         }
 
         function update() {
             if(!gameActive) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // プレイヤー（動物の大きな顔）
             ctx.font = "80px Arial";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(currentAnimal, player.x, player.y);
 
-            // 吸い込みエフェクト（うっすら円を表示）
             ctx.beginPath();
             ctx.arc(player.x, player.y, player.pull, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(255,255,255,0.3)";
+            ctx.strokeStyle = "rgba(255,255,255,0.4)";
             ctx.lineWidth = 2;
             ctx.stroke();
 
             for(let i = items.length - 1; i >= 0; i--) {
                 let it = items[i];
                 it.y += it.speed;
-
-                // アイテム描画
                 ctx.font = "40px Arial";
                 ctx.fillText(it.emoji, it.x, it.y);
 
-                // 当たり（吸い込み）判定
                 let dx = player.x - it.x;
                 let dy = player.y - it.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
@@ -138,7 +192,6 @@
                         score++;
                         ui.innerText = "SCORE: " + score;
                         items.splice(i, 1);
-                        // キャッチした瞬間のプチ演出
                         player.pull = 100; 
                         setTimeout(()=> player.pull = 85, 50);
                     } else {
@@ -154,15 +207,23 @@
 
         function gameOver() {
             gameActive = false;
+            clearTimeout(spawnTimer);
             if(score > bestScore) {
                 bestScore = score;
                 localStorage.setItem("hungry_animal_best", bestScore);
+                bestUi.innerText = bestScore;
             }
-            alert("お腹を壊しちゃった！\n食べたごはん: " + score);
-            location.reload();
+            
+            // ゲームオーバー表示の切り替え
+            menuTitle.innerText = "GAME OVER";
+            menuTitle.style.color = "#d32f2f";
+            gameDesc.style.display = "none"; // 説明文を消してスペース確保
+            goButton.innerText = "もういっかい！";
+            
+            adMid.style.display = "flex"; 
+            startScreen.style.display = "flex";
         }
 
-        // 🚀 30秒ごとに広告を転生
         setInterval(() => {
             ["frame-top", "frame-bottom"].forEach(id => {
                 const f = document.getElementById(id);
@@ -171,7 +232,7 @@
                     setTimeout(() => f.src = s, 100);
                 }
             });
-        },29000);
+        }, 29000);
     </script>
 </body>
 </html>
